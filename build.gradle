@@ -24,7 +24,7 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.5.2816"
+    version = "1.12.2-14.23.5.2847"
     runDir = "run"
  
     mappings = "snapshot_20171003"
@@ -51,6 +51,7 @@ dependencies {
 	    compile "com.mrcrayfish:obfuscate:0.2.6-1.12.2"
 		compile "net.ilexiconn:llibrary:1.7.9-1.12.2:dev"
 
+    dependencies { compile fileTree(dir:'lib',include:['*.jar'])}
 }
 
 processResources {
