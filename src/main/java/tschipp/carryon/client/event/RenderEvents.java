@@ -126,13 +126,13 @@ public class RenderEvents
 				CarryOnKeybinds.setKeyPressed(player, false);
 				CarryOn.network.sendToServer(new SyncKeybindPacket(false));
 				
-				if(CarryOn.FINGERPRINT_VIOLATED)
-				{
-					TextComponentString cf = new TextComponentString(TextFormatting.AQUA + "Curseforge" + TextFormatting.RED);
-					cf.getStyle().setClickEvent(new ClickEvent(Action.OPEN_URL, "https://minecraft.curseforge.com/projects/carry-on"));
-					
-					player.sendMessage(new TextComponentString(TextFormatting.RED + "[CarryOn] WARNING! Invalid fingerprint detected! The Carry On mod file may have been tampered with! If you didn't download the file from ").appendSibling(cf).appendText(TextFormatting.RED + " or through any kind of mod launcher, immediately delete the file and re-download it from ").appendSibling(cf));
-				}
+//				if(CarryOn.FINGERPRINT_VIOLATED)
+//				{
+//					TextComponentString cf = new TextComponentString(TextFormatting.AQUA + "Curseforge" + TextFormatting.RED);
+//					cf.getStyle().setClickEvent(new ClickEvent(Action.OPEN_URL, "https://minecraft.curseforge.com/projects/carry-on"));
+//
+//					player.sendMessage(new TextComponentString(TextFormatting.RED + "[CarryOn] WARNING! Invalid fingerprint detected! The Carry On mod file may have been tampered with! If you didn't download the file from ").appendSibling(cf).appendText(TextFormatting.RED + " or through any kind of mod launcher, immediately delete the file and re-download it from ").appendSibling(cf));
+//				}
 			}
 			
 		}
@@ -463,180 +463,172 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.HIGH)
-	public void onEvent(RenderPlayerEvent.Post event)
-	{
-		if(!CarryOnConfig.settings.renderArms)
+	public void onEvent(RenderPlayerEvent.Post event) {
+		if (!CarryOnConfig.settings.renderArms)
 			return;
-		
-		if (handleMobends() && !Loader.isModLoaded("obfuscate") && !Loader.isModLoaded("llibrary"))
-		{
+
+		if (handleMobends() && !Loader.isModLoaded("obfuscate") && !Loader.isModLoaded("llibrary")) {
 			EntityPlayer player = event.getEntityPlayer();
 			EntityPlayerSP clientPlayer = Minecraft.getMinecraft().player;
 			float partialticks = event.getPartialRenderTick();
 
 			RenderPlayer render = event.getRenderer();
-			
+
 			ItemStack stack = player.getHeldItemMainhand();
-			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack))
-			{
-				RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
+			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
+				if (RenderPlayerHandler.getContext() != null)
+					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
+				else {
+					ModelPlayer model = event.getRenderer().getMainModel();
+					float rotation = 0;
 
-				float rotation = 0;
+					if (player.isRiding() && player.getRidingEntity() instanceof EntityLivingBase)
+						rotation = (player.prevRotationYawHead + (player.rotationYawHead - player.prevRotationYawHead) * partialticks);
+					else
+						rotation = (player.prevRenderYawOffset + (player.renderYawOffset - player.prevRenderYawOffset) * partialticks);
 
-				if (player.isRiding() && player.getRidingEntity() instanceof EntityLivingBase)
-					rotation = (player.prevRotationYawHead + (player.rotationYawHead - player.prevRotationYawHead) * partialticks);
-				else
-					rotation = (player.prevRenderYawOffset + (player.renderYawOffset - player.prevRenderYawOffset) * partialticks);
+					AbstractClientPlayer aplayer = (AbstractClientPlayer) player;
+					ResourceLocation skinLoc = aplayer.getLocationSkin();
 
-//				AbstractClientPlayer aplayer = (AbstractClientPlayer) player;
-//				ResourceLocation skinLoc = aplayer.getLocationSkin();
+					double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialticks;
+					double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialticks;
+					double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialticks;
 
-//				double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialticks;
-//				double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialticks;
-//				double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialticks;
-//
-//				double c0 = clientPlayer.lastTickPosX + (clientPlayer.posX - clientPlayer.lastTickPosX) * partialticks;
-//				double c1 = clientPlayer.lastTickPosY + (clientPlayer.posY - clientPlayer.lastTickPosY) * partialticks;
-//				double c2 = clientPlayer.lastTickPosZ + (clientPlayer.posZ - clientPlayer.lastTickPosZ) * partialticks;
-//
-//				double xOffset = d0 - c0;
-//				double yOffset = d1 - c1;
-//				double zOffset = d2 - c2;
-//
-//				GlStateManager.pushMatrix();
-//				GlStateManager.translate(xOffset, yOffset, zOffset);
+					double c0 = clientPlayer.lastTickPosX + (clientPlayer.posX - clientPlayer.lastTickPosX) * partialticks;
+					double c1 = clientPlayer.lastTickPosY + (clientPlayer.posY - clientPlayer.lastTickPosY) * partialticks;
+					double c2 = clientPlayer.lastTickPosZ + (clientPlayer.posZ - clientPlayer.lastTickPosZ) * partialticks;
 
-				//Minecraft.getMinecraft().getTextureManager().bindTexture(skinLoc);
+					double xOffset = d0 - c0;
+					double yOffset = d1 - c1;
+					double zOffset = d2 - c2;
 
-//				CarryOnOverride overrider = ScriptChecker.getOverride(player);
-//				if (overrider != null)
-//				{
-//					double[] rotLeft = null;
-//					double[] rotRight = null;
-//					if (overrider.getRenderRotationLeftArm() != null)
-//						rotLeft = ScriptParseHelper.getXYZArray(overrider.getRenderRotationLeftArm());
-//					if (overrider.getRenderRotationRightArm() != null)
-//						rotRight = ScriptParseHelper.getXYZArray(overrider.getRenderRotationRightArm());
-//
-//					boolean renderRight = overrider.isRenderRightArm();
-//					boolean renderLeft = overrider.isRenderLeftArm();
-//
-//					if (renderLeft && rotLeft != null)
-//					{
-//						renderArmPost(model.bipedLeftArm, (float) rotLeft[0], (float) rotLeft[2], rotation, false, player.isSneaking());
-//						renderArmPost(model.bipedLeftArmwear, (float) rotLeft[0], (float) rotLeft[2], rotation, false, player.isSneaking());
-//					}
-//					else if (renderLeft)
-//					{
-//						renderArmPost(model.bipedLeftArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
-//						renderArmPost(model.bipedLeftArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
-//					}
-//
-//					if (renderRight && rotRight != null)
-//					{
-//						renderArmPost(model.bipedRightArm, (float) rotRight[0], (float) rotRight[2], rotation, true, player.isSneaking());
-//						renderArmPost(model.bipedRightArmwear, (float) rotRight[0], (float) rotRight[2], rotation, true, player.isSneaking());
-//					}
-//					else if (renderRight)
-//					{
-//						renderArmPost(model.bipedRightArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
-//						renderArmPost(model.bipedRightArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
-//					}
-//
-//				}
-//				else
-//				{
-//					renderArmPost(model.bipedRightArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
-//					renderArmPost(model.bipedLeftArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
-//					renderArmPost(model.bipedLeftArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
-//					renderArmPost(model.bipedRightArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
-//				}
-//				GlStateManager.popMatrix();
+					GlStateManager.pushMatrix();
+					GlStateManager.translate(xOffset, yOffset, zOffset);
+
+					Minecraft.getMinecraft().getTextureManager().bindTexture(skinLoc);
+
+					CarryOnOverride overrider = ScriptChecker.getOverride(player);
+					if (overrider != null) {
+						double[] rotLeft = null;
+						double[] rotRight = null;
+						if (overrider.getRenderRotationLeftArm() != null)
+							rotLeft = ScriptParseHelper.getXYZArray(overrider.getRenderRotationLeftArm());
+						if (overrider.getRenderRotationRightArm() != null)
+							rotRight = ScriptParseHelper.getXYZArray(overrider.getRenderRotationRightArm());
+
+						boolean renderRight = overrider.isRenderRightArm();
+						boolean renderLeft = overrider.isRenderLeftArm();
+
+						if (renderLeft && rotLeft != null) {
+							renderArmPost(model.bipedLeftArm, (float) rotLeft[0], (float) rotLeft[2], rotation, false, player.isSneaking());
+							renderArmPost(model.bipedLeftArmwear, (float) rotLeft[0], (float) rotLeft[2], rotation, false, player.isSneaking());
+						} else if (renderLeft) {
+							renderArmPost(model.bipedLeftArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
+							renderArmPost(model.bipedLeftArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
+						}
+
+						if (renderRight && rotRight != null) {
+							renderArmPost(model.bipedRightArm, (float) rotRight[0], (float) rotRight[2], rotation, true, player.isSneaking());
+							renderArmPost(model.bipedRightArmwear, (float) rotRight[0], (float) rotRight[2], rotation, true, player.isSneaking());
+						} else if (renderRight) {
+							renderArmPost(model.bipedRightArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
+							renderArmPost(model.bipedRightArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
+						}
+
+					} else {
+						renderArmPost(model.bipedRightArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
+						renderArmPost(model.bipedLeftArm, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
+						renderArmPost(model.bipedLeftArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation, false, player.isSneaking());
+						renderArmPost(model.bipedRightArmwear, 2.0F + (player.isSneaking() ? 0f : 0.2f) - (stack.getItem() == RegistrationHandler.itemEntity ? 0.3f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation, true, player.isSneaking());
+					}
+					GlStateManager.popMatrix();
+				}
+			} else {
+				if (RenderPlayerHandler.getContext() != null)
+					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			}
-			else
-				RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 		}
 	}
 
 	/*
 	 * Hides the vanilla arm for rendering the rotation
 	 */
-//	@SideOnly(Side.CLIENT)
-//	@SubscribeEvent(priority = EventPriority.NORMAL)
-//	public void onEvent(RenderPlayerEvent.Pre event)
-//	{
-//		if(!CarryOnConfig.settings.renderArms)
-//			return;
-//
-//		if (handleMobends() && !Loader.isModLoaded("obfuscate") && !Loader.isModLoaded("llibrary"))
-//		{
-//			EntityPlayer player = event.getEntityPlayer();
-//			ItemStack stack = player.getHeldItemMainhand();
-//			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack))
-//			{
-//				ModelPlayer model = event.getRenderer().getMainModel();
-//
-//				CarryOnOverride overrider = ScriptChecker.getOverride(player);
-//				if (overrider != null)
-//				{
-//					boolean renderRight = overrider.isRenderRightArm();
-//					boolean renderLeft = overrider.isRenderLeftArm();
-//
-//					if (renderRight)
-//					{
-//						renderArmPre(model.bipedRightArm);
-//						renderArmPre(model.bipedRightArmwear);
-//					}
-//
-//					if (renderLeft)
-//					{
-//						renderArmPre(model.bipedLeftArm);
-//						renderArmPre(model.bipedLeftArmwear);
-//					}
-//				}
-//				else
-//				{
-//					renderArmPre(model.bipedRightArm);
-//					renderArmPre(model.bipedLeftArm);
-//					renderArmPre(model.bipedLeftArmwear);
-//					renderArmPre(model.bipedRightArmwear);
-//				}
-//			}
-//		}
-//	}
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.NORMAL)
+	public void onEvent(RenderPlayerEvent.Pre event)
+	{
+		if(!CarryOnConfig.settings.renderArms)
+			return;
 
-//	@SideOnly(Side.CLIENT)
-//	public void renderArmPost(ModelRenderer arm, float x, float z, float rotation, boolean right, boolean sneaking)
-//	{
-//		arm.isHidden = false;
-//		if (right)
-//		{
-//			arm.rotationPointZ = -MathHelper.sin((float) Math.toRadians(rotation)) * 4.75F;
-//			arm.rotationPointX = -MathHelper.cos((float) Math.toRadians(rotation)) * 4.75F;
-//		}
-//		else
-//		{
-//			arm.rotationPointZ = MathHelper.sin((float) Math.toRadians(rotation)) * 4.75F;
-//			arm.rotationPointX = MathHelper.cos((float) Math.toRadians(rotation)) * 4.75F;
-//		}
-//
-//		if (!sneaking)
-//			arm.rotationPointY = 20;
-//		else
-//			arm.rotationPointY = 15;
-//
-//		arm.rotateAngleX = (float) x;
-//		arm.rotateAngleY = (float) -Math.toRadians(rotation);
-//		arm.rotateAngleZ = (float) z;
-//		arm.renderWithRotation(0.0625F);
-//		arm.rotationPointY = 2;
-//	}
+		if (handleMobends() && !Loader.isModLoaded("obfuscate") && !Loader.isModLoaded("llibrary")) {
+			EntityPlayer player = event.getEntityPlayer();
+			ItemStack stack = player.getHeldItemMainhand();
+			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
+				if (RenderPlayerHandler.getContext() != null)
+					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
+				else {
+					ModelPlayer model = event.getRenderer().getMainModel();
 
-//	@SideOnly(Side.CLIENT)
-//	public void renderArmPre(ModelRenderer arm)
-//	{
-//		//arm.isHidden = true;
-//	}
+					CarryOnOverride overrider = ScriptChecker.getOverride(player);
+					if (overrider != null) {
+						boolean renderRight = overrider.isRenderRightArm();
+						boolean renderLeft = overrider.isRenderLeftArm();
+
+						if (renderRight) {
+							renderArmPre(model.bipedRightArm);
+							renderArmPre(model.bipedRightArmwear);
+						}
+
+						if (renderLeft) {
+							renderArmPre(model.bipedLeftArm);
+							renderArmPre(model.bipedLeftArmwear);
+						}
+					} else {
+						renderArmPre(model.bipedRightArm);
+						renderArmPre(model.bipedLeftArm);
+						renderArmPre(model.bipedLeftArmwear);
+						renderArmPre(model.bipedRightArmwear);
+					}
+				}
+			} else {
+				if (RenderPlayerHandler.getContext() != null)
+					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
+			}
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void renderArmPost(ModelRenderer arm, float x, float z, float rotation, boolean right, boolean sneaking)
+	{
+		arm.isHidden = false;
+		if (right)
+		{
+			arm.rotationPointZ = -MathHelper.sin((float) Math.toRadians(rotation)) * 4.75F;
+			arm.rotationPointX = -MathHelper.cos((float) Math.toRadians(rotation)) * 4.75F;
+		}
+		else
+		{
+			arm.rotationPointZ = MathHelper.sin((float) Math.toRadians(rotation)) * 4.75F;
+			arm.rotationPointX = MathHelper.cos((float) Math.toRadians(rotation)) * 4.75F;
+		}
+
+		if (!sneaking)
+			arm.rotationPointY = 20;
+		else
+			arm.rotationPointY = 15;
+
+		arm.rotateAngleX = (float) x;
+		arm.rotateAngleY = (float) -Math.toRadians(rotation);
+		arm.rotateAngleZ = (float) z;
+		arm.renderWithRotation(0.0625F);
+		arm.rotationPointY = 2;
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void renderArmPre(ModelRenderer arm)
+	{
+		arm.isHidden = true;
+	}
 
 	private boolean mobendsPresent = Loader.isModLoaded("mobends");
 
