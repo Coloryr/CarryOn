@@ -159,9 +159,7 @@ public class RenderEvents
 					Minecraft.getMinecraft().player.closeScreen();
 					Minecraft.getMinecraft().currentScreen = null;
 					Minecraft.getMinecraft().setIngameFocus();
-
 				}
-
 			}
 		}
 	}
@@ -476,7 +474,7 @@ public class RenderEvents
 
 			ItemStack stack = player.getHeldItemMainhand();
 			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
-				if (RenderPlayerHandler.getContext() != null)
+				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
 					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
 				else {
 					ModelPlayer model = event.getRenderer().getMainModel();
@@ -544,7 +542,7 @@ public class RenderEvents
 					GlStateManager.popMatrix();
 				}
 			} else {
-				if (RenderPlayerHandler.getContext() != null)
+				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
 					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			}
 		}
@@ -564,7 +562,7 @@ public class RenderEvents
 			EntityPlayer player = event.getEntityPlayer();
 			ItemStack stack = player.getHeldItemMainhand();
 			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
-				if (RenderPlayerHandler.getContext() != null)
+				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
 					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
 				else {
 					ModelPlayer model = event.getRenderer().getMainModel();
@@ -591,7 +589,7 @@ public class RenderEvents
 					}
 				}
 			} else {
-				if (RenderPlayerHandler.getContext() != null)
+				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
 					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			}
 		}
