@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -82,7 +83,8 @@ public class ItemEvents
 		{
 			player.getEntityData().removeTag("carrySlot");
 			event.setUseBlock(Result.DENY);
-
+			if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
+				RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			if (!player.world.isRemote)
 			{
 				CarryOnOverride override = ScriptChecker.getOverride(player);

@@ -63,8 +63,7 @@ import tschipp.carryon.common.scripting.CarryOnOverride;
 import tschipp.carryon.common.scripting.ScriptChecker;
 import tschipp.carryon.network.server.SyncKeybindPacket;
 
-public class RenderEvents
-{
+public class RenderEvents {
 	private boolean obfuscatePresent = Loader.isModLoaded("obfuscate");
 
 	private static boolean initModels;
@@ -74,16 +73,12 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void onScroll(MouseEvent event)
-	{
-		if (event.getDwheel() > 0 || event.getDwheel() < 0 || Minecraft.getMinecraft().gameSettings.keyBindPickBlock.isPressed())
-		{
+	public void onScroll(MouseEvent event) {
+		if (event.getDwheel() > 0 || event.getDwheel() < 0 || Minecraft.getMinecraft().gameSettings.keyBindPickBlock.isPressed()) {
 			ItemStack stack = Minecraft.getMinecraft().player.getHeldItemMainhand();
 
-			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile)
-			{
-				if (ItemTile.hasTileData(stack))
-				{
+			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile) {
+				if (ItemTile.hasTileData(stack)) {
 					event.setCanceled(true);
 				}
 			}
@@ -92,22 +87,17 @@ public class RenderEvents
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onPlayerTick(PlayerTickEvent event) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException
-	{
+	public void onPlayerTick(PlayerTickEvent event) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		EntityPlayer player = event.player;
 
-		if (player != null && event.side == Side.CLIENT)
-		{
+		if (player != null && event.side == Side.CLIENT) {
 			boolean keyPressed = CarryOnKeybinds.carryKey.isKeyDown();
 			boolean playerKeyPressed = CarryOnKeybinds.isKeyPressed(player);
 
-			if (keyPressed && !playerKeyPressed)
-			{
+			if (keyPressed && !playerKeyPressed) {
 				CarryOnKeybinds.setKeyPressed(player, true);
 				CarryOn.network.sendToServer(new SyncKeybindPacket(true));
-			}
-			else if (!keyPressed && playerKeyPressed)
-			{
+			} else if (!keyPressed && playerKeyPressed) {
 				CarryOnKeybinds.setKeyPressed(player, false);
 				CarryOn.network.sendToServer(new SyncKeybindPacket(false));
 			}
@@ -116,16 +106,13 @@ public class RenderEvents
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onJoinWorld(EntityJoinWorldEvent event)
-	{
-		if (event.getEntity() instanceof EntityPlayer)
-		{
+	public void onJoinWorld(EntityJoinWorldEvent event) {
+		if (event.getEntity() instanceof EntityPlayer) {
 			EntityPlayer player = (EntityPlayer) event.getEntity();
-			if (player.world.isRemote)
-			{
+			if (player.world.isRemote) {
 				CarryOnKeybinds.setKeyPressed(player, false);
 				CarryOn.network.sendToServer(new SyncKeybindPacket(false));
-				
+
 //				if(CarryOn.FINGERPRINT_VIOLATED)
 //				{
 //					TextComponentString cf = new TextComponentString(TextFormatting.AQUA + "Curseforge" + TextFormatting.RED);
@@ -134,7 +121,7 @@ public class RenderEvents
 //					player.sendMessage(new TextComponentString(TextFormatting.RED + "[CarryOn] WARNING! Invalid fingerprint detected! The Carry On mod file may have been tampered with! If you didn't download the file from ").appendSibling(cf).appendText(TextFormatting.RED + " or through any kind of mod launcher, immediately delete the file and re-download it from ").appendSibling(cf));
 //				}
 			}
-			
+
 		}
 	}
 
@@ -143,19 +130,15 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void onGuiInit(InitGuiEvent.Pre event)
-	{
-		if (event.getGui() != null)
-		{
+	public void onGuiInit(InitGuiEvent.Pre event) {
+		if (event.getGui() != null) {
 			boolean inventory = event.getGui() instanceof GuiContainer;
 			EntityPlayer player = Minecraft.getMinecraft().player;
 
-			if (player != null && inventory)
-			{
+			if (player != null && inventory) {
 				ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
 
-				if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack))
-				{
+				if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack)) {
 					Minecraft.getMinecraft().player.closeScreen();
 					Minecraft.getMinecraft().currentScreen = null;
 					Minecraft.getMinecraft().setIngameFocus();
@@ -169,28 +152,22 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void inputEvent(InputEvent event) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException
-	{
+	public void inputEvent(InputEvent event) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		GameSettings settings = Minecraft.getMinecraft().gameSettings;
 		Field field = KeyBinding.class.getDeclaredFields()[8];
 		field.setAccessible(true);
 		ItemStack stack = Minecraft.getMinecraft().player.getHeldItemMainhand();
 		EntityPlayer player = Minecraft.getMinecraft().player;
 
-		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack))
-		{
-			if (settings.keyBindDrop.isPressed())
-			{
+		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack)) {
+			if (settings.keyBindDrop.isPressed()) {
 				field.set(settings.keyBindDrop, false);
 			}
-			if (settings.keyBindSwapHands.isPressed())
-			{
+			if (settings.keyBindSwapHands.isPressed()) {
 				field.set(settings.keyBindSwapHands, false);
 			}
-			for (KeyBinding keyBind : settings.keyBindsHotbar)
-			{
-				if (keyBind.isPressed())
-				{
+			for (KeyBinding keyBind : settings.keyBindsHotbar) {
+				if (keyBind.isPressed()) {
 					field.set(keyBind, false);
 				}
 			}
@@ -198,8 +175,7 @@ public class RenderEvents
 
 		int current = player.inventory.currentItem;
 
-		if (player.getEntityData().hasKey("carrySlot") ? player.getEntityData().getInteger("carrySlot") != current : false)
-		{
+		if (player.getEntityData().hasKey("carrySlot") ? player.getEntityData().getInteger("carrySlot") != current : false) {
 			player.inventory.currentItem = player.getEntityData().getInteger("carrySlot");
 		}
 	}
@@ -209,8 +185,7 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void renderHand(RenderHandEvent event)
-	{
+	public void renderHand(RenderHandEvent event) {
 		World world = Minecraft.getMinecraft().world;
 		EntityPlayer player = Minecraft.getMinecraft().player;
 		AbstractClientPlayer aplayer = (AbstractClientPlayer) player;
@@ -218,8 +193,7 @@ public class RenderEvents
 		int perspective = Minecraft.getMinecraft().gameSettings.thirdPersonView;
 		boolean f1 = Minecraft.getMinecraft().gameSettings.hideGUI;
 
-		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) && perspective == 0 && !f1)
-		{
+		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) && perspective == 0 && !f1) {
 			if (Loader.isModLoaded("realrender") || Loader.isModLoaded("rfpr"))
 				return;
 
@@ -233,27 +207,22 @@ public class RenderEvents
 			GlStateManager.translate(0, -0.6, -1);
 			GlStateManager.enableBlend();
 
-			if (CarryOnConfig.settings.facePlayer ? !isChest(block) : isChest(block))
-			{
+			if (CarryOnConfig.settings.facePlayer ? !isChest(block) : isChest(block)) {
 				GlStateManager.rotate(180, 0, 1f, 0);
 				GlStateManager.rotate(-8, 1f, 0, 0);
-			}
-			else
-			{
+			} else {
 				GlStateManager.rotate(8, 1f, 0, 0);
 			}
 
 			IBakedModel model = ModelOverridesHandler.hasCustomOverrideModel(state, tag) ? ModelOverridesHandler.getCustomOverrideModel(state, tag, world, player) : Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(tileStack, world, player);
 
 			CarryOnOverride carryOverride = ScriptChecker.getOverride(player);
-			if (carryOverride != null)
-			{
+			if (carryOverride != null) {
 				double[] translation = ScriptParseHelper.getXYZArray(carryOverride.getRenderTranslation());
 				double[] rotation = ScriptParseHelper.getXYZArray(carryOverride.getRenderRotation());
 				double[] scale = ScriptParseHelper.getScale(carryOverride.getRenderScale());
 				Block b = StringParser.getBlock(carryOverride.getRenderNameBlock());
-				if (b != null)
-				{
+				if (b != null) {
 					ItemStack s = new ItemStack(b, 1, carryOverride.getRenderMeta());
 					s.setTagCompound(carryOverride.getRenderNBT());
 					model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(s, world, player);
@@ -276,29 +245,22 @@ public class RenderEvents
 
 			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-			if (ModelOverridesHandler.hasCustomOverrideModel(state, tag))
-			{
+			if (ModelOverridesHandler.hasCustomOverrideModel(state, tag)) {
 				Object override = ModelOverridesHandler.getOverrideObject(state, tag);
 
-				if (override instanceof ItemStack)
-				{
+				if (override instanceof ItemStack) {
 
 					Minecraft.getMinecraft().getRenderItem().renderItem((ItemStack) override, model);
-				}
-				else
-				{
+				} else {
 					Minecraft.getMinecraft().getRenderItem().renderItem(tileStack.isEmpty() ? stack : tileStack, model);
 				}
-			}
-			else
-			{
+			} else {
 				Minecraft.getMinecraft().getRenderItem().renderItem(tileStack.isEmpty() ? stack : tileStack, model);
 			}
 
 			this.setLightmapDisabled(true);
 
-			if (perspective == 0)
-			{
+			if (perspective == 0) {
 				event.setCanceled(true);
 			}
 
@@ -310,32 +272,24 @@ public class RenderEvents
 	}
 
 	@SideOnly(Side.CLIENT)
-	private int getBrightnessForRender(EntityPlayer player)
-	{
+	private int getBrightnessForRender(EntityPlayer player) {
 		BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(MathHelper.floor(player.posX), 0, MathHelper.floor(player.posZ));
 
-		if (player.world.isBlockLoaded(blockpos$mutableblockpos))
-		{
+		if (player.world.isBlockLoaded(blockpos$mutableblockpos)) {
 			blockpos$mutableblockpos.setY(MathHelper.floor(player.posY + player.getEyeHeight()));
 			return player.world.getCombinedLight(blockpos$mutableblockpos, 0);
-		}
-		else
-		{
+		} else {
 			return 0;
 		}
 	}
 
 	@SideOnly(Side.CLIENT)
-	private void setLightmapDisabled(boolean disabled)
-	{
+	private void setLightmapDisabled(boolean disabled) {
 		GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
 
-		if (disabled)
-		{
+		if (disabled) {
 			GlStateManager.disableTexture2D();
-		}
-		else
-		{
+		} else {
 			GlStateManager.enableTexture2D();
 		}
 
@@ -347,16 +301,14 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
-	public void onPlayerRenderPost(RenderPlayerEvent.Post event)
-	{
+	public void onPlayerRenderPost(RenderPlayerEvent.Post event) {
 		World world = Minecraft.getMinecraft().world;
 		EntityPlayer player = event.getEntityPlayer();
 		EntityPlayerSP clientPlayer = Minecraft.getMinecraft().player;
 		ItemStack stack = player.getHeldItemMainhand();
 		float partialticks = event.getPartialRenderTick();
 
-		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack))
-		{
+		if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack)) {
 			Block block = ItemTile.getBlock(stack);
 			IBlockState state = ItemTile.getBlockState(stack);
 			NBTTagCompound tag = ItemTile.getTileData(stack);
@@ -386,37 +338,31 @@ public class RenderEvents
 			GlStateManager.scale(0.6, 0.6, 0.6);
 			GlStateManager.enableBlend();
 
-			if (CarryOnConfig.settings.facePlayer ? !isChest(block) : isChest(block))
-			{
+			if (CarryOnConfig.settings.facePlayer ? !isChest(block) : isChest(block)) {
 				GlStateManager.rotate(rotation, 0, 1.0f, 0);
 				GlStateManager.translate(0, 1.6, 0.65);
 				if ((Loader.isModLoaded("realrender") || Loader.isModLoaded("rfpr")) && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0)
 					GlStateManager.translate(0, 0, -0.4);
-			}
-			else
-			{
+			} else {
 				GlStateManager.rotate(rotation + 180, 0, 1.0f, 0);
 				GlStateManager.translate(0, 1.6, -0.65);
 				if ((Loader.isModLoaded("realrender") || Loader.isModLoaded("rfpr")) && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0)
 					GlStateManager.translate(0, 0, 0.4);
 			}
 
-			if (player.isSneaking())
-			{
+			if (player.isSneaking()) {
 				GlStateManager.translate(0, -0.3, 0);
 			}
 
 			IBakedModel model = ModelOverridesHandler.hasCustomOverrideModel(state, tag) ? ModelOverridesHandler.getCustomOverrideModel(state, tag, world, player) : Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(tileItem, world, player);
 
 			CarryOnOverride carryOverride = ScriptChecker.getOverride(player);
-			if (carryOverride != null)
-			{
+			if (carryOverride != null) {
 				double[] translation = ScriptParseHelper.getXYZArray(carryOverride.getRenderTranslation());
 				double[] rot = ScriptParseHelper.getXYZArray(carryOverride.getRenderRotation());
 				double[] scale = ScriptParseHelper.getScale(carryOverride.getRenderScale());
 				Block b = StringParser.getBlock(carryOverride.getRenderNameBlock());
-				if (b != null)
-				{
+				if (b != null) {
 					ItemStack s = new ItemStack(b, 1, carryOverride.getRenderMeta());
 					s.setTagCompound(carryOverride.getRenderNBT());
 					model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(s, world, player);
@@ -432,21 +378,15 @@ public class RenderEvents
 
 			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-			if (ModelOverridesHandler.hasCustomOverrideModel(state, tag))
-			{
+			if (ModelOverridesHandler.hasCustomOverrideModel(state, tag)) {
 				Object override = ModelOverridesHandler.getOverrideObject(state, tag);
 
-				if (override instanceof ItemStack)
-				{
+				if (override instanceof ItemStack) {
 					Minecraft.getMinecraft().getRenderItem().renderItem((ItemStack) override, model);
-				}
-				else
-				{
+				} else {
 					Minecraft.getMinecraft().getRenderItem().renderItem(tileItem.isEmpty() ? stack : tileItem, model);
 				}
-			}
-			else
-			{
+			} else {
 				Minecraft.getMinecraft().getRenderItem().renderItem(tileItem.isEmpty() ? stack : tileItem, model);
 			}
 
@@ -470,15 +410,13 @@ public class RenderEvents
 			EntityPlayerSP clientPlayer = Minecraft.getMinecraft().player;
 			float partialticks = event.getPartialRenderTick();
 
-			RenderPlayer render = event.getRenderer();
-
 			ItemStack stack = player.getHeldItemMainhand();
 			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
 				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
 					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
 				else {
 					ModelPlayer model = event.getRenderer().getMainModel();
-					float rotation = 0;
+					float rotation;
 
 					if (player.isRiding() && player.getRidingEntity() instanceof EntityLivingBase)
 						rotation = (player.prevRotationYawHead + (player.rotationYawHead - player.prevRotationYawHead) * partialticks);
@@ -541,9 +479,6 @@ public class RenderEvents
 					}
 					GlStateManager.popMatrix();
 				}
-			} else {
-				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			}
 		}
 	}
@@ -553,44 +488,37 @@ public class RenderEvents
 	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.NORMAL)
-	public void onEvent(RenderPlayerEvent.Pre event)
-	{
-		if(!CarryOnConfig.settings.renderArms)
+	public void onEvent(RenderPlayerEvent.Pre event) {
+		if (!CarryOnConfig.settings.renderArms)
 			return;
-
+		if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
+			return;
 		if (handleMobends() && !Loader.isModLoaded("obfuscate") && !Loader.isModLoaded("llibrary")) {
 			EntityPlayer player = event.getEntityPlayer();
 			ItemStack stack = player.getHeldItemMainhand();
 			if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
-				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
-				else {
-					ModelPlayer model = event.getRenderer().getMainModel();
+				ModelPlayer model = event.getRenderer().getMainModel();
 
-					CarryOnOverride overrider = ScriptChecker.getOverride(player);
-					if (overrider != null) {
-						boolean renderRight = overrider.isRenderRightArm();
-						boolean renderLeft = overrider.isRenderLeftArm();
+				CarryOnOverride overrider = ScriptChecker.getOverride(player);
+				if (overrider != null) {
+					boolean renderRight = overrider.isRenderRightArm();
+					boolean renderLeft = overrider.isRenderLeftArm();
 
-						if (renderRight) {
-							renderArmPre(model.bipedRightArm);
-							renderArmPre(model.bipedRightArmwear);
-						}
-
-						if (renderLeft) {
-							renderArmPre(model.bipedLeftArm);
-							renderArmPre(model.bipedLeftArmwear);
-						}
-					} else {
+					if (renderRight) {
 						renderArmPre(model.bipedRightArm);
-						renderArmPre(model.bipedLeftArm);
-						renderArmPre(model.bipedLeftArmwear);
 						renderArmPre(model.bipedRightArmwear);
 					}
+
+					if (renderLeft) {
+						renderArmPre(model.bipedLeftArm);
+						renderArmPre(model.bipedLeftArmwear);
+					}
+				} else {
+					renderArmPre(model.bipedRightArm);
+					renderArmPre(model.bipedLeftArm);
+					renderArmPre(model.bipedLeftArmwear);
+					renderArmPre(model.bipedRightArmwear);
 				}
-			} else {
-				if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-					RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			}
 		}
 	}

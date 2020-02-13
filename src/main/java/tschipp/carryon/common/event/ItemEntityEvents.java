@@ -2,6 +2,7 @@ package tschipp.carryon.common.event;
 
 import java.util.List;
 
+import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -49,7 +50,8 @@ public class ItemEntityEvents
 		{
 			player.getEntityData().removeTag("carrySlot");
 			event.setUseBlock(Result.DENY);
-
+			if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
+				RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
 			if (!player.world.isRemote)
 			{
 				CarryOnOverride override = ScriptChecker.getOverride(player);
