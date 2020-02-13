@@ -8,27 +8,23 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import tschipp.carryon.client.keybinds.CarryOnKeybinds;
 
-public class SyncKeybindPacketHandler implements IMessageHandler<SyncKeybindPacket, IMessage>
-{
+public class SyncKeybindPacketHandler implements IMessageHandler<SyncKeybindPacket, IMessage> {
 
-	@Override
-	public IMessage onMessage(final SyncKeybindPacket message, final MessageContext ctx)
-	{
-		IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
+    @Override
+    public IMessage onMessage(final SyncKeybindPacket message, final MessageContext ctx) {
+        IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
 
-		mainThread.addScheduledTask(new Runnable()
-		{
-			EntityPlayerMP player = ctx.getServerHandler().player;
+        mainThread.addScheduledTask(new Runnable() {
+            EntityPlayerMP player = ctx.getServerHandler().player;
 
-			@Override
-			public void run()
-			{
-				CarryOnKeybinds.setKeyPressed(player, message.pressed);
-			}
+            @Override
+            public void run() {
+                CarryOnKeybinds.setKeyPressed(player, message.pressed);
+            }
 
-		});
+        });
 
-		return null;
-	}
+        return null;
+    }
 
 }

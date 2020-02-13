@@ -1,8 +1,5 @@
 package tschipp.carryon.common.command;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -14,67 +11,56 @@ import tschipp.carryon.common.config.CarryOnConfig;
 import tschipp.carryon.common.scripting.ScriptReader;
 import tschipp.carryon.network.client.ScriptReloadPacket;
 
-public class CommandCarryOnReload extends CommandBase
-{
+import java.util.Collections;
+import java.util.List;
 
-	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-	{
+public class CommandCarryOnReload extends CommandBase {
 
-		if (CarryOnConfig.settings.useScripts)
-		{
-			ScriptReader.reloadScripts();
-			CarryOn.network.sendToAll(new ScriptReloadPacket());
-			sender.sendMessage(new TextComponentString("Successfully reloaded scripts!"));
-		}
-		else
-			sender.sendMessage(new TextComponentString("To use custom Carry On scripts, enable them in the config!"));
+    @Override
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 
-	}
+        if (CarryOnConfig.settings.useScripts) {
+            ScriptReader.reloadScripts();
+            CarryOn.network.sendToAll(new ScriptReloadPacket());
+            sender.sendMessage(new TextComponentString("Successfully reloaded scripts!"));
+        } else
+            sender.sendMessage(new TextComponentString("To use custom Carry On scripts, enable them in the config!"));
 
-	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender)
-	{
-		return sender.canUseCommand(this.getRequiredPermissionLevel(), this.getName());
-	}
+    }
 
-	@Override
-	public int getRequiredPermissionLevel()
-	{
-		return 2;
-	}
+    @Override
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+        return sender.canUseCommand(this.getRequiredPermissionLevel(), this.getName());
+    }
 
-	@Override
-	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
-	{
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
 
-		if (args.length > 0)
-		{
-			if (args.length == 1)
-			{
-				return CommandBase.getListOfStringsMatchingLastWord(args, "reload");
-			}
+    @Override
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
 
-			else
-			{
-				return Collections.<String>emptyList();
-			}
+        if (args.length > 0) {
+            if (args.length == 1) {
+                return CommandBase.getListOfStringsMatchingLastWord(args, "reload");
+            } else {
+                return Collections.<String>emptyList();
+            }
 
-		}
+        }
 
-		return Collections.<String>emptyList();
+        return Collections.<String>emptyList();
 
-	}
+    }
 
-	@Override
-	public String getName()
-	{
-		return "reloadscripts";
-	}
+    @Override
+    public String getName() {
+        return "reloadscripts";
+    }
 
-	@Override
-	public String getUsage(ICommandSender sender)
-	{
-		return "/reloadscripts";
-	}
+    @Override
+    public String getUsage(ICommandSender sender) {
+        return "/reloadscripts";
+    }
 }

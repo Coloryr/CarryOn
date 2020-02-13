@@ -15,77 +15,63 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import tschipp.carryon.common.capabilities.IPosition;
 import tschipp.carryon.common.capabilities.PositionProvider;
 
-public class PositionClientEvents
-{
+public class PositionClientEvents {
 
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent
-	public void onGui(GuiScreenEvent.DrawScreenEvent event)
-	{
-		if (event.getGui() != null)
-		{
-			EntityPlayer player = Minecraft.getMinecraft().player;
-			boolean inventory = event.getGui() instanceof GuiContainer;
-			
-			if (player != null && inventory)
-			{
-				if(player.hasCapability(PositionProvider.POSITION_CAPABILITY, null))
-				{
-					IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
-					if(cap.isBlockActivated())
-					{
-						World world = player.world;
-						BlockPos pos = cap.getPos();
-						if(world != null)
-						{
-							TileEntity te = world.getTileEntity(pos);
-							if(te == null)
-							{
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onGui(GuiScreenEvent.DrawScreenEvent event) {
+        if (event.getGui() != null) {
+            EntityPlayer player = Minecraft.getMinecraft().player;
+            boolean inventory = event.getGui() instanceof GuiContainer;
+
+            if (player != null && inventory) {
+                if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null)) {
+                    IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
+                    if (cap.isBlockActivated()) {
+                        World world = player.world;
+                        BlockPos pos = cap.getPos();
+                        if (world != null) {
+                            TileEntity te = world.getTileEntity(pos);
+                            if (te == null) {
 //								player.openContainer = null;
-								Minecraft.getMinecraft().currentScreen = null;
-								Minecraft.getMinecraft().setIngameFocus();
-								cap.setBlockActivated(false);
-								cap.setPos(new BlockPos(0,0,0));
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent
-	public void onGuiClose(PlayerContainerEvent.Close event)
-	{
-		EntityPlayer player = event.getEntityPlayer();
-		if(player.hasCapability(PositionProvider.POSITION_CAPABILITY, null))
-		{
-			IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
-			cap.setBlockActivated(false);
-			cap.setPos(new BlockPos(0,0,0));
-		}
-	}
-	
-	
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent
-	public void onPlayerTick(PlayerTickEvent event)
-	{
-		if (event.side == Side.CLIENT)
-		{
-			EntityPlayer player = event.player;
-			if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null))
-			{
-				IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
-				if (cap.isBlockActivated() && Minecraft.getMinecraft().currentScreen == null)
-				{
-					cap.setBlockActivated(false);
-					cap.setPos(new BlockPos(0, 0, 0));
-				}
-			}
-		}
-	}
-	
-	
+                                Minecraft.getMinecraft().currentScreen = null;
+                                Minecraft.getMinecraft().setIngameFocus();
+                                cap.setBlockActivated(false);
+                                cap.setPos(new BlockPos(0, 0, 0));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onGuiClose(PlayerContainerEvent.Close event) {
+        EntityPlayer player = event.getEntityPlayer();
+        if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null)) {
+            IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
+            cap.setBlockActivated(false);
+            cap.setPos(new BlockPos(0, 0, 0));
+        }
+    }
+
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onPlayerTick(PlayerTickEvent event) {
+        if (event.side == Side.CLIENT) {
+            EntityPlayer player = event.player;
+            if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null)) {
+                IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
+                if (cap.isBlockActivated() && Minecraft.getMinecraft().currentScreen == null) {
+                    cap.setBlockActivated(false);
+                    cap.setPos(new BlockPos(0, 0, 0));
+                }
+            }
+        }
+    }
+
+
 }

@@ -1,14 +1,6 @@
 package tschipp.carryon.common.item;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
 import com.google.common.base.CharMatcher;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.block.properties.IProperty;
@@ -46,364 +38,316 @@ import tschipp.carryon.common.event.ItemEvents;
 import tschipp.carryon.common.handler.CustomPickupOverrideHandler;
 import tschipp.carryon.common.handler.ModelOverridesHandler;
 
-public class ItemTile extends Item
-{
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-	public static final String TILE_DATA_KEY = "tileData";
-	public static final String[] FACING_KEYS = new String[] { "rotation", "rot", "facing", "face", "direction", "dir", "front", "forward" };
+public class ItemTile extends Item {
 
-	public ItemTile()
-	{
-		this.setUnlocalizedName("tile_item");
-		this.setRegistryName(CarryOn.MODID, "tile_item");
-		ForgeRegistries.ITEMS.register(this);
-		this.setMaxStackSize(1);
-	}
+    public static final String TILE_DATA_KEY = "tileData";
+    public static final String[] FACING_KEYS = new String[]{"rotation", "rot", "facing", "face", "direction", "dir", "front", "forward"};
 
-	@Override
-	public String getItemStackDisplayName(ItemStack stack)
-	{
-		if (hasTileData(stack))
-		{
-			IBlockState state = getBlockState(stack);
-			NBTTagCompound nbt = getTileData(stack);
+    public ItemTile() {
+        this.setUnlocalizedName("tile_item");
+        this.setRegistryName(CarryOn.MODID, "tile_item");
+        ForgeRegistries.ITEMS.register(this);
+        this.setMaxStackSize(1);
+    }
 
-			if (ModelOverridesHandler.hasCustomOverrideModel(state, nbt))
-			{
-				Object override = ModelOverridesHandler.getOverrideObject(state, nbt);
-				if (override instanceof ItemStack)
-					return ((ItemStack) override).getDisplayName();
-				else
-				{
-					IBlockState ostate = (IBlockState) override;
-					ItemStack itemstack = new ItemStack(ostate.getBlock().getItemDropped(ostate, this.itemRand, 0), 1, state.getBlock().damageDropped(ostate));
-					return itemstack.getDisplayName();
-				}
-			}
+    public static boolean hasTileData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            return tag.hasKey(TILE_DATA_KEY) && tag.hasKey("block") && tag.hasKey("meta") && tag.hasKey("stateid");
+        }
+        return false;
+    }
 
-			return getItemStack(stack).getDisplayName();
-		}
+    public static boolean storeTileData(@Nullable TileEntity tile, World world, BlockPos pos, IBlockState state, ItemStack stack) {
+        if (stack.isEmpty())
+            return false;
 
-		return "";
-	}
+        NBTTagCompound chest = new NBTTagCompound();
+        if (tile != null)
+            chest = tile.writeToNBT(chest);
 
-	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
-	{
-		if (Loader.isModLoaded("betterplacement"))
-		{
-			if (CarryOnKeybinds.isKeyPressed(player))
-				return EnumActionResult.FAIL;
-		}
+        NBTTagCompound tag = stack.hasTagCompound() ? stack.getTagCompound() : new NBTTagCompound();
+        if (tag.hasKey(TILE_DATA_KEY))
+            return false;
 
-		Block block = world.getBlockState(pos).getBlock();
-		ItemStack stack = player.getHeldItem(hand);
-		if (hasTileData(stack))
-		{
-			try
-			{
-				Vec3d vec = player.getLookVec();
-				EnumFacing facing2 = EnumFacing.getFacingFromVector((float) vec.x, 0f, (float) vec.z);
-				BlockPos pos2 = pos;
-				Block containedblock = getBlock(stack);
-				int meta = getMeta(stack);
-				IBlockState containedstate = getBlockState(stack);
-				if (!world.getBlockState(pos2).getBlock().isReplaceable(world, pos2))
-				{
-					pos2 = pos.offset(facing);
-				}
+        tag.setTag(TILE_DATA_KEY, chest);
 
-				if (world.getBlockState(pos2).getBlock().isReplaceable(world, pos2) && containedblock != null)
-				{
-					boolean canPlace = containedblock.canPlaceBlockAt(world, pos2);
+        ItemStack drop = new ItemStack(state.getBlock().getItemDropped(state, itemRand, 0), 1, state.getBlock().damageDropped(state));
 
-					if (canPlace)
-					{
-						if (player.canPlayerEdit(pos, facing, stack) && world.mayPlace(containedblock, pos2, false, facing, (Entity) null))
-						{
-							boolean set = false;
+        tag.setString("block", state.getBlock().getRegistryName().toString());
+        Item item = Item.getItemFromBlock(state.getBlock());
+        tag.setInteger("meta", drop.getItemDamage());
+        tag.setInteger("stateid", Block.getStateId(state));
+        stack.setTagCompound(tag);
+        return true;
+    }
 
-							// Handles Blockstate rotation
-							Iterator<IProperty<?>> iterator = containedblock.getDefaultState().getPropertyKeys().iterator();
-							while (iterator.hasNext())
-							{
-								IProperty prop = iterator.next();
-								Object[] allowedValues = prop.getAllowedValues().toArray();
+    public static void clearTileData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            tag.removeTag(TILE_DATA_KEY);
+            tag.removeTag("block");
+            tag.removeTag("meta");
+            tag.removeTag("stateid");
+        }
+    }
 
-								if (prop instanceof PropertyDirection && this.equal(allowedValues, EnumFacing.HORIZONTALS))
-								{
-									BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
-									PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
-									MinecraftForge.EVENT_BUS.post(event);
+    public static NBTTagCompound getTileData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            return tag.getCompoundTag(TILE_DATA_KEY);
+        }
+        return null;
+    }
 
-									if (!event.isCanceled())
-									{
-										world.setBlockState(pos2, containedstate.withProperty(prop, containedblock instanceof BlockStairs ? facing2 : facing2.getOpposite()));
-										set = true;
-									}
-								}
-								else if (prop instanceof PropertyDirection && this.equal(allowedValues, EnumFacing.VALUES))
-								{
-									facing2 = EnumFacing.getFacingFromVector((float) vec.x, (float) vec.y, (float) vec.z);
+    public static Block getBlock(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            int id = tag.getInteger("stateid");
+            return Block.getStateById(id).getBlock();
+        }
+        return Blocks.AIR;
+    }
 
-									BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
-									PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
-									MinecraftForge.EVENT_BUS.post(event);
+    public static int getMeta(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            int meta = tag.getInteger("meta");
+            return meta;
+        }
+        return 0;
+    }
 
-									if (!event.isCanceled())
-									{
-										world.setBlockState(pos2, containedstate.withProperty(prop, facing2.getOpposite()));
-										set = true;
-									}
-								}
-							}
+    public static ItemStack getItemStack(ItemStack stack) {
+        return new ItemStack(getBlock(stack), 1, getMeta(stack));
+    }
 
-							// If the blockstate doesn't handle rotation, try to
-							// change rotation via NBT
-							if (!set && !getTileData(stack).hasNoTags())
-							{
-								NBTTagCompound tag = getTileData(stack);
-								Set<String> keys = tag.getKeySet();
-								keytester: for (String key : keys)
-								{
-									for (String facingKey : FACING_KEYS)
-									{
-										if (key.toLowerCase().equals(facingKey))
-										{
-											String type = tag.getTagTypeName(tag.getTagId(key));
-											switch (type)
-											{
-											case "TAG_String":
-												tag.setString(key, CharMatcher.JAVA_UPPER_CASE.matchesAllOf(tag.getString(key)) ? facing2.getOpposite().getName().toUpperCase() : facing2.getOpposite().getName());
-												break;
-											case "TAG_Int":
-												tag.setInteger(key, facing2.getOpposite().getIndex());
-												break;
-											case "TAG_Byte":
-												tag.setByte(key, (byte) facing2.getOpposite().getIndex());
-												break;
-											default:
-												break;
-											}
+    public static IBlockState getBlockState(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            int id = tag.getInteger("stateid");
+            return Block.getStateById(id);
+        }
+        return Blocks.AIR.getDefaultState();
+    }
 
-											break keytester;
-										}
-									}
-								}
-							}
+    public static boolean isLocked(BlockPos pos, World world) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te != null) {
+            NBTTagCompound tag = new NBTTagCompound();
+            te.writeToNBT(tag);
+            return tag.hasKey("Lock") ? !tag.getString("Lock").equals("") : false;
+        }
 
-							if (!set)
-							{
-								BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
-								PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
-								MinecraftForge.EVENT_BUS.post(event);
+        return false;
+    }
 
-								if (!event.isCanceled())
-								{
-									world.setBlockState(pos2, containedstate);
-									set = true;
-								}
-							}
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        if (hasTileData(stack)) {
+            IBlockState state = getBlockState(stack);
+            NBTTagCompound nbt = getTileData(stack);
 
-							if (set)
-							{
-								TileEntity tile = world.getTileEntity(pos2);
-								if (tile != null)
-								{
-									tile.readFromNBT(getTileData(stack));
-									tile.setPos(pos2);
-								}
-								clearTileData(stack);
-								player.playSound(containedblock.getSoundType().getPlaceSound(), 1.0f, 0.5f);
-								player.setHeldItem(hand, ItemStack.EMPTY);
-								player.getEntityData().removeTag("overrideKey");
-								ItemEvents.sendPacket(player, 9, 0);
-								return EnumActionResult.SUCCESS;
-							}
-						}
+            if (ModelOverridesHandler.hasCustomOverrideModel(state, nbt)) {
+                Object override = ModelOverridesHandler.getOverrideObject(state, nbt);
+                if (override instanceof ItemStack)
+                    return ((ItemStack) override).getDisplayName();
+                else {
+                    IBlockState ostate = (IBlockState) override;
+                    ItemStack itemstack = new ItemStack(ostate.getBlock().getItemDropped(ostate, this.itemRand, 0), 1, state.getBlock().damageDropped(ostate));
+                    return itemstack.getDisplayName();
+                }
+            }
 
-					}
-				}
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
+            return getItemStack(stack).getDisplayName();
+        }
 
-				if (world != null && world.isRemote)
-				{
-					CarryOn.LOGGER.info("Block: " + ItemTile.getBlock(stack));
-					CarryOn.LOGGER.info("BlockState: " + ItemTile.getBlockState(stack));
-					CarryOn.LOGGER.info("Meta: " + ItemTile.getMeta(stack));
-					CarryOn.LOGGER.info("ItemStack: " + ItemTile.getItemStack(stack));
+        return "";
+    }
 
-					if (ModelOverridesHandler.hasCustomOverrideModel(ItemTile.getBlockState(stack), ItemTile.getTileData(stack)))
-						CarryOn.LOGGER.info("Override Model: " + ModelOverridesHandler.getOverrideObject(ItemTile.getBlockState(stack), ItemTile.getTileData(stack)));
+    @Override
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        if (Loader.isModLoaded("betterplacement")) {
+            if (CarryOnKeybinds.isKeyPressed(player))
+                return EnumActionResult.FAIL;
+        }
 
-					if (CustomPickupOverrideHandler.hasSpecialPickupConditions(ItemTile.getBlockState(stack)))
-						CarryOn.LOGGER.info("Custom Pickup Condition: " + CustomPickupOverrideHandler.getPickupCondition(ItemTile.getBlockState(stack)));
+        Block block = world.getBlockState(pos).getBlock();
+        ItemStack stack = player.getHeldItem(hand);
+        if (hasTileData(stack)) {
+            try {
+                Vec3d vec = player.getLookVec();
+                EnumFacing facing2 = EnumFacing.getFacingFromVector((float) vec.x, 0f, (float) vec.z);
+                BlockPos pos2 = pos;
+                Block containedblock = getBlock(stack);
+                int meta = getMeta(stack);
+                IBlockState containedstate = getBlockState(stack);
+                if (!world.getBlockState(pos2).getBlock().isReplaceable(world, pos2)) {
+                    pos2 = pos.offset(facing);
+                }
 
-					player.sendMessage(new TextComponentString(TextFormatting.RED + "Error detected. Cannot place block. Execute \"/carryon clear\" to remove the item"));
-					TextComponentString s = new TextComponentString(TextFormatting.GOLD + "here");
-					s.getStyle().setClickEvent(new ClickEvent(Action.OPEN_URL, "https://github.com/Tschipp/CarryOn/issues"));
-					player.sendMessage(new TextComponentString(TextFormatting.RED + "Please report this error ").appendSibling(s));
+                if (world.getBlockState(pos2).getBlock().isReplaceable(world, pos2) && containedblock != null) {
+                    boolean canPlace = containedblock.canPlaceBlockAt(world, pos2);
 
-				}
-			}
+                    if (canPlace) {
+                        if (player.canPlayerEdit(pos, facing, stack) && world.mayPlace(containedblock, pos2, false, facing, (Entity) null)) {
+                            boolean set = false;
 
-		}
+                            // Handles Blockstate rotation
+                            Iterator<IProperty<?>> iterator = containedblock.getDefaultState().getPropertyKeys().iterator();
+                            while (iterator.hasNext()) {
+                                IProperty prop = iterator.next();
+                                Object[] allowedValues = prop.getAllowedValues().toArray();
 
-		return EnumActionResult.FAIL;
-	}
+                                if (prop instanceof PropertyDirection && this.equal(allowedValues, EnumFacing.HORIZONTALS)) {
+                                    BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
+                                    PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
+                                    MinecraftForge.EVENT_BUS.post(event);
 
-	@Override
-	public void onUpdate(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
-	{
-		if (hasTileData(stack))
-		{
-			if (entity instanceof EntityLivingBase)
-			{
-				if (entity instanceof EntityPlayer && CarryOnConfig.settings.slownessInCreative ? false : ((EntityPlayer) entity).isCreative())
-					return;
+                                    if (!event.isCanceled()) {
+                                        world.setBlockState(pos2, containedstate.withProperty(prop, containedblock instanceof BlockStairs ? facing2 : facing2.getOpposite()));
+                                        set = true;
+                                    }
+                                } else if (prop instanceof PropertyDirection && this.equal(allowedValues, EnumFacing.VALUES)) {
+                                    facing2 = EnumFacing.getFacingFromVector((float) vec.x, (float) vec.y, (float) vec.z);
 
-				((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 1, potionLevel(stack), false, false));
-			}
-		}
-		else
-		{
-			stack = ItemStack.EMPTY;
-		}
-	}
+                                    BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
+                                    PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
+                                    MinecraftForge.EVENT_BUS.post(event);
 
-	public static boolean hasTileData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			return tag.hasKey(TILE_DATA_KEY) && tag.hasKey("block") && tag.hasKey("meta") && tag.hasKey("stateid");
-		}
-		return false;
-	}
+                                    if (!event.isCanceled()) {
+                                        world.setBlockState(pos2, containedstate.withProperty(prop, facing2.getOpposite()));
+                                        set = true;
+                                    }
+                                }
+                            }
 
-	public static boolean storeTileData(@Nullable TileEntity tile, World world, BlockPos pos, IBlockState state, ItemStack stack)
-	{
-		if (stack.isEmpty())
-			return false;
+                            // If the blockstate doesn't handle rotation, try to
+                            // change rotation via NBT
+                            if (!set && !getTileData(stack).hasNoTags()) {
+                                NBTTagCompound tag = getTileData(stack);
+                                Set<String> keys = tag.getKeySet();
+                                keytester:
+                                for (String key : keys) {
+                                    for (String facingKey : FACING_KEYS) {
+                                        if (key.toLowerCase().equals(facingKey)) {
+                                            String type = tag.getTagTypeName(tag.getTagId(key));
+                                            switch (type) {
+                                                case "TAG_String":
+                                                    tag.setString(key, CharMatcher.JAVA_UPPER_CASE.matchesAllOf(tag.getString(key)) ? facing2.getOpposite().getName().toUpperCase() : facing2.getOpposite().getName());
+                                                    break;
+                                                case "TAG_Int":
+                                                    tag.setInteger(key, facing2.getOpposite().getIndex());
+                                                    break;
+                                                case "TAG_Byte":
+                                                    tag.setByte(key, (byte) facing2.getOpposite().getIndex());
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
 
-		NBTTagCompound chest = new NBTTagCompound();
-		if (tile != null)
-			chest = tile.writeToNBT(chest);
+                                            break keytester;
+                                        }
+                                    }
+                                }
+                            }
 
-		NBTTagCompound tag = stack.hasTagCompound() ? stack.getTagCompound() : new NBTTagCompound();
-		if (tag.hasKey(TILE_DATA_KEY))
-			return false;
+                            if (!set) {
+                                BlockSnapshot snapshot = new BlockSnapshot(world, pos2, containedstate);
+                                PlaceEvent event = new PlaceEvent(snapshot, world.getBlockState(pos), player, hand);
+                                MinecraftForge.EVENT_BUS.post(event);
 
-		tag.setTag(TILE_DATA_KEY, chest);
+                                if (!event.isCanceled()) {
+                                    world.setBlockState(pos2, containedstate);
+                                    set = true;
+                                }
+                            }
 
-		ItemStack drop = new ItemStack(state.getBlock().getItemDropped(state, itemRand, 0), 1, state.getBlock().damageDropped(state));
+                            if (set) {
+                                TileEntity tile = world.getTileEntity(pos2);
+                                if (tile != null) {
+                                    tile.readFromNBT(getTileData(stack));
+                                    tile.setPos(pos2);
+                                }
+                                clearTileData(stack);
+                                player.playSound(containedblock.getSoundType().getPlaceSound(), 1.0f, 0.5f);
+                                player.setHeldItem(hand, ItemStack.EMPTY);
+                                player.getEntityData().removeTag("overrideKey");
+                                ItemEvents.sendPacket(player, 9, 0);
+                                return EnumActionResult.SUCCESS;
+                            }
+                        }
 
-		tag.setString("block", state.getBlock().getRegistryName().toString());
-		Item item = Item.getItemFromBlock(state.getBlock());
-		tag.setInteger("meta", drop.getItemDamage());
-		tag.setInteger("stateid", Block.getStateId(state));
-		stack.setTagCompound(tag);
-		return true;
-	}
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
 
-	public static void clearTileData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			tag.removeTag(TILE_DATA_KEY);
-			tag.removeTag("block");
-			tag.removeTag("meta");
-			tag.removeTag("stateid");
-		}
-	}
+                if (world != null && world.isRemote) {
+                    CarryOn.LOGGER.info("Block: " + ItemTile.getBlock(stack));
+                    CarryOn.LOGGER.info("BlockState: " + ItemTile.getBlockState(stack));
+                    CarryOn.LOGGER.info("Meta: " + ItemTile.getMeta(stack));
+                    CarryOn.LOGGER.info("ItemStack: " + ItemTile.getItemStack(stack));
 
-	public static NBTTagCompound getTileData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			return tag.getCompoundTag(TILE_DATA_KEY);
-		}
-		return null;
-	}
+                    if (ModelOverridesHandler.hasCustomOverrideModel(ItemTile.getBlockState(stack), ItemTile.getTileData(stack)))
+                        CarryOn.LOGGER.info("Override Model: " + ModelOverridesHandler.getOverrideObject(ItemTile.getBlockState(stack), ItemTile.getTileData(stack)));
 
-	public static Block getBlock(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			int id = tag.getInteger("stateid");
-			return Block.getStateById(id).getBlock();
-		}
-		return Blocks.AIR;
-	}
+                    if (CustomPickupOverrideHandler.hasSpecialPickupConditions(ItemTile.getBlockState(stack)))
+                        CarryOn.LOGGER.info("Custom Pickup Condition: " + CustomPickupOverrideHandler.getPickupCondition(ItemTile.getBlockState(stack)));
 
-	public static int getMeta(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			int meta = tag.getInteger("meta");
-			return meta;
-		}
-		return 0;
-	}
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Error detected. Cannot place block. Execute \"/carryon clear\" to remove the item"));
+                    TextComponentString s = new TextComponentString(TextFormatting.GOLD + "here");
+                    s.getStyle().setClickEvent(new ClickEvent(Action.OPEN_URL, "https://github.com/Tschipp/CarryOn/issues"));
+                    player.sendMessage(new TextComponentString(TextFormatting.RED + "Please report this error ").appendSibling(s));
 
-	public static ItemStack getItemStack(ItemStack stack)
-	{
-		return new ItemStack(getBlock(stack), 1, getMeta(stack));
-	}
+                }
+            }
 
-	public static IBlockState getBlockState(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			int id = tag.getInteger("stateid");
-			return Block.getStateById(id);
-		}
-		return Blocks.AIR.getDefaultState();
-	}
+        }
 
-	public static boolean isLocked(BlockPos pos, World world)
-	{
-		TileEntity te = world.getTileEntity(pos);
-		if (te != null)
-		{
-			NBTTagCompound tag = new NBTTagCompound();
-			te.writeToNBT(tag);
-			return tag.hasKey("Lock") ? !tag.getString("Lock").equals("") : false;
-		}
+        return EnumActionResult.FAIL;
+    }
 
-		return false;
-	}
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
+        if (hasTileData(stack)) {
+            if (entity instanceof EntityLivingBase) {
+                if (entity instanceof EntityPlayer && CarryOnConfig.settings.slownessInCreative ? false : ((EntityPlayer) entity).isCreative())
+                    return;
 
-	private boolean equal(Object[] a, Object[] b)
-	{
-		if (a.length != b.length)
-			return false;
+                ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 1, potionLevel(stack), false, false));
+            }
+        } else {
+            stack = ItemStack.EMPTY;
+        }
+    }
 
-		List lA = Arrays.asList(a);
-		List lB = Arrays.asList(b);
+    private boolean equal(Object[] a, Object[] b) {
+        if (a.length != b.length)
+            return false;
 
-		return lA.containsAll(lB);
-	}
+        List lA = Arrays.asList(a);
+        List lB = Arrays.asList(b);
 
-	private int potionLevel(ItemStack stack)
-	{
-		String nbt = getTileData(stack).toString();
-		int i = nbt.length() / 500;
+        return lA.containsAll(lB);
+    }
 
-		if (i > 4)
-			i = 4;
+    private int potionLevel(ItemStack stack) {
+        String nbt = getTileData(stack).toString();
+        int i = nbt.length() / 500;
 
-		if (!CarryOnConfig.settings.heavyTiles)
-			i = 1;
+        if (i > 4)
+            i = 4;
 
-		return (int) (i * CarryOnConfig.settings.blockSlownessMultiplier);
-	}
+        if (!CarryOnConfig.settings.heavyTiles)
+            i = 1;
+
+        return (int) (i * CarryOnConfig.settings.blockSlownessMultiplier);
+    }
 }

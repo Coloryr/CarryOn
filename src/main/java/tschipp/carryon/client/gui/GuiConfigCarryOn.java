@@ -1,7 +1,5 @@
 package tschipp.carryon.client.gui;
 
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.common.config.ConfigCategory;
@@ -12,8 +10,9 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import tschipp.carryon.CarryOn;
 import tschipp.carryon.common.config.CarryOnConfig;
 
-public class GuiConfigCarryOn extends GuiConfig
-{
+import java.util.List;
+
+public class GuiConfigCarryOn extends GuiConfig {
     private static final String LANG_PREFIX = CarryOn.MODID + ".category.";
 
     public GuiConfigCarryOn(GuiScreen parent) {

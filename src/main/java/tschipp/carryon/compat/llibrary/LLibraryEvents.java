@@ -1,6 +1,6 @@
 package tschipp.carryon.compat.llibrary;
 
-import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
+import com.github.gamepiaynmo.custommodel.client.CustomModelClient;
 import net.ilexiconn.llibrary.client.event.PlayerModelEvent;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelPlayer;
@@ -19,80 +19,76 @@ import tschipp.carryon.common.item.ItemTile;
 import tschipp.carryon.common.scripting.CarryOnOverride;
 import tschipp.carryon.common.scripting.ScriptChecker;
 
-public class LLibraryEvents
-{
+public class LLibraryEvents {
 
-	@SubscribeEvent
-	public void setAngles(PlayerModelEvent.SetRotationAngles event)
-	{
-		if (!CarryOnConfig.settings.renderArms)
-			return;
+    @SubscribeEvent
+    public void setAngles(PlayerModelEvent.SetRotationAngles event) {
+        if (!CarryOnConfig.settings.renderArms)
+            return;
 
-		EntityPlayer player = event.getEntityPlayer();
-		if (player != null) {
-			ModelBiped modelBiped = event.getModel();
-			if (modelBiped instanceof ModelPlayer) {
-				ItemStack stack = player.getHeldItemMainhand();
-				ModelPlayer model = (ModelPlayer) modelBiped;
+        EntityPlayer player = event.getEntityPlayer();
+        if (player != null) {
+            ModelBiped modelBiped = event.getModel();
+            if (modelBiped instanceof ModelPlayer) {
+                ItemStack stack = player.getHeldItemMainhand();
+                ModelPlayer model = (ModelPlayer) modelBiped;
 
-				if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
+                if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack) || stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
 
-					if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-						RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
-					else {
-						float rotation = 0;
+                    if (CustomModelClient.manager.getModelForEntity(player) != null)
+                        return;
 
-						if (player.isRiding() && player.getRidingEntity() instanceof EntityLivingBase)
-							rotation = 0;
-						else
-							rotation = 0;
+                    float rotation = 0;
 
-						CarryOnOverride overrider = ScriptChecker.getOverride(player);
-						if (overrider != null) {
-							double[] rotLeft = null;
-							double[] rotRight = null;
-							if (overrider.getRenderRotationLeftArm() != null)
-								rotLeft = ScriptParseHelper.getXYZArray(overrider.getRenderRotationLeftArm());
-							if (overrider.getRenderRotationRightArm() != null)
-								rotRight = ScriptParseHelper.getXYZArray(overrider.getRenderRotationRightArm());
+                    if (player.isRiding() && player.getRidingEntity() instanceof EntityLivingBase)
+                        rotation = 0;
+                    else
+                        rotation = 0;
 
-							boolean renderRight = overrider.isRenderRightArm();
-							boolean renderLeft = overrider.isRenderLeftArm();
+                    CarryOnOverride overrider = ScriptChecker.getOverride(player);
+                    if (overrider != null) {
+                        double[] rotLeft = null;
+                        double[] rotRight = null;
+                        if (overrider.getRenderRotationLeftArm() != null)
+                            rotLeft = ScriptParseHelper.getXYZArray(overrider.getRenderRotationLeftArm());
+                        if (overrider.getRenderRotationRightArm() != null)
+                            rotRight = ScriptParseHelper.getXYZArray(overrider.getRenderRotationRightArm());
 
-							if (renderLeft && rotLeft != null) {
-								render(model.bipedLeftArm, (float) rotLeft[0], (float) rotLeft[2], rotation);
-								render(model.bipedLeftArmwear, (float) rotLeft[0], (float) rotLeft[2], rotation);
-							} else if (renderLeft) {
-								render(model.bipedLeftArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
-								render(model.bipedLeftArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
-							}
+                        boolean renderRight = overrider.isRenderRightArm();
+                        boolean renderLeft = overrider.isRenderLeftArm();
 
-							if (renderRight && rotRight != null) {
-								render(model.bipedRightArm, (float) rotRight[0], (float) rotRight[2], rotation);
-								render(model.bipedRightArmwear, (float) rotRight[0], (float) rotRight[2], rotation);
-							} else if (renderRight) {
-								render(model.bipedRightArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
-								render(model.bipedRightArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
-							}
+                        if (renderLeft && rotLeft != null) {
+                            render(model.bipedLeftArm, (float) rotLeft[0], (float) rotLeft[2], rotation);
+                            render(model.bipedLeftArmwear, (float) rotLeft[0], (float) rotLeft[2], rotation);
+                        } else if (renderLeft) {
+                            render(model.bipedLeftArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
+                            render(model.bipedLeftArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
+                        }
 
-						} else {
-							render(model.bipedRightArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
-							render(model.bipedRightArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
-							render(model.bipedLeftArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
-							render(model.bipedLeftArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
-						}
-					}
-				}
-			}
-		}
-	}
+                        if (renderRight && rotRight != null) {
+                            render(model.bipedRightArm, (float) rotRight[0], (float) rotRight[2], rotation);
+                            render(model.bipedRightArmwear, (float) rotRight[0], (float) rotRight[2], rotation);
+                        } else if (renderRight) {
+                            render(model.bipedRightArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
+                            render(model.bipedRightArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
+                        }
 
-	@SideOnly(Side.CLIENT)
-	private void render(ModelRenderer arm, float x, float z, float rotation)
-	{
-		arm.rotateAngleX = (float) -x;
-		arm.rotateAngleY = (float) -Math.toRadians(rotation);
-		arm.rotateAngleZ = (float) z;
-	}
+                    } else {
+                        render(model.bipedRightArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
+                        render(model.bipedRightArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? -0.15f : 0), rotation);
+                        render(model.bipedLeftArm, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
+                        render(model.bipedLeftArmwear, 0.8F + (player.isSneaking() ? 0.2f : 0f) - (stack.getItem() == RegistrationHandler.itemEntity ? -0.2f : 0), (stack.getItem() == RegistrationHandler.itemEntity ? 0.15f : 0), rotation);
+                    }
+                }
+            }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void render(ModelRenderer arm, float x, float z, float rotation) {
+        arm.rotateAngleX = (float) -x;
+        arm.rotateAngleY = (float) -Math.toRadians(rotation);
+        arm.rotateAngleZ = (float) z;
+    }
 
 }

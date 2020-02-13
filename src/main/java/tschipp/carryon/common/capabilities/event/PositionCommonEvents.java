@@ -14,47 +14,40 @@ import tschipp.carryon.CarryOn;
 import tschipp.carryon.common.capabilities.IPosition;
 import tschipp.carryon.common.capabilities.PositionProvider;
 
-public class PositionCommonEvents
-{
+public class PositionCommonEvents {
 
-	@SubscribeEvent
-	public void onAttachCaps(AttachCapabilitiesEvent<Entity> event)
-	{
-		if (event.getObject() instanceof EntityPlayer)
-		{
-			event.addCapability(new ResourceLocation(CarryOn.MODID, "position"), new PositionProvider());
-		}
+    @SubscribeEvent
+    public void onAttachCaps(AttachCapabilitiesEvent<Entity> event) {
+        if (event.getObject() instanceof EntityPlayer) {
+            event.addCapability(new ResourceLocation(CarryOn.MODID, "position"), new PositionProvider());
+        }
 
-	}
+    }
 
-	@SubscribeEvent
-	public void onBlockRight(PlayerInteractEvent.RightClickBlock event)
-	{
-		BlockPos pos = event.getPos();
-		World world = event.getWorld();
-		EntityPlayer player = event.getEntityPlayer();
+    @SubscribeEvent
+    public void onBlockRight(PlayerInteractEvent.RightClickBlock event) {
+        BlockPos pos = event.getPos();
+        World world = event.getWorld();
+        EntityPlayer player = event.getEntityPlayer();
 
-		if (event.isCanceled())
-			return;
+        if (event.isCanceled())
+            return;
 
-		if (player == null)
-			return;
+        if (player == null)
+            return;
 
-		if (player instanceof FakePlayer)
-			return;
+        if (player instanceof FakePlayer)
+            return;
 
-		TileEntity te = world.getTileEntity(pos);
-		if (te != null)
-		{
-			if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null))
-			{
-				IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
-				cap.setBlockActivated(true);
-				cap.setPos(pos);
-			}
-		}
-	}
+        TileEntity te = world.getTileEntity(pos);
+        if (te != null) {
+            if (player.hasCapability(PositionProvider.POSITION_CAPABILITY, null)) {
+                IPosition cap = player.getCapability(PositionProvider.POSITION_CAPABILITY, null);
+                cap.setBlockActivated(true);
+                cap.setPos(pos);
+            }
+        }
+    }
 
-	
 
 }

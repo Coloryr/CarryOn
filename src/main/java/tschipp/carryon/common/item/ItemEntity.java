@@ -1,7 +1,5 @@
 package tschipp.carryon.common.item;
 
-import javax.annotation.Nonnull;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -20,213 +18,183 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import tschipp.carryon.CarryOn;
 import tschipp.carryon.client.keybinds.CarryOnKeybinds;
 import tschipp.carryon.common.config.CarryOnConfig;
 import tschipp.carryon.common.event.ItemEvents;
-import tschipp.carryon.network.client.CarrySlotPacket;
 
-public class ItemEntity extends Item
-{
+import javax.annotation.Nonnull;
 
-	public static final String ENTITY_DATA_KEY = "entityData";
+public class ItemEntity extends Item {
 
-	public ItemEntity()
-	{
-		this.setUnlocalizedName("entity_item");
-		this.setRegistryName(CarryOn.MODID, "entity_item");
-		ForgeRegistries.ITEMS.register(this);
-		this.setMaxStackSize(1);
-	}
+    public static final String ENTITY_DATA_KEY = "entityData";
 
-	@Override
-	public String getItemStackDisplayName(ItemStack stack)
-	{
-		if (hasEntityData(stack))
-		{	
-			return I18n.translateToLocal("entity."+EntityList.getTranslationName(new ResourceLocation(getEntityName(stack))) + ".name");
-		}
+    public ItemEntity() {
+        this.setUnlocalizedName("entity_item");
+        this.setRegistryName(CarryOn.MODID, "entity_item");
+        ForgeRegistries.ITEMS.register(this);
+        this.setMaxStackSize(1);
+    }
 
-		return "";
-	}
+    public static boolean hasEntityData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            return tag.hasKey(ENTITY_DATA_KEY) && tag.hasKey("entity");
+        }
+        return false;
+    }
 
-	public static boolean hasEntityData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			return tag.hasKey(ENTITY_DATA_KEY) && tag.hasKey("entity");
-		}
-		return false;
-	}
+    public static boolean storeEntityData(@Nonnull Entity entity, World world, ItemStack stack) {
+        if (entity == null)
+            return false;
 
-	public static boolean storeEntityData(@Nonnull Entity entity, World world, ItemStack stack)
-	{
-		if (entity == null)
-			return false;
+        if (stack.isEmpty())
+            return false;
 
-		if (stack.isEmpty())
-			return false;
+        NBTTagCompound entityData = new NBTTagCompound();
+        entityData = entity.writeToNBT(entityData);
 
-		NBTTagCompound entityData = new NBTTagCompound();
-		entityData = entity.writeToNBT(entityData);
+        String name = EntityList.getKey(entity).toString();
 
-		String name = EntityList.getKey(entity).toString();
+        NBTTagCompound tag = stack.hasTagCompound() ? stack.getTagCompound() : new NBTTagCompound();
+        if (tag.hasKey(ENTITY_DATA_KEY))
+            return false;
 
-		NBTTagCompound tag = stack.hasTagCompound() ? stack.getTagCompound() : new NBTTagCompound();
-		if (tag.hasKey(ENTITY_DATA_KEY))
-			return false;
+        tag.setTag(ENTITY_DATA_KEY, entityData);
+        tag.setString("entity", name);
+        stack.setTagCompound(tag);
+        return true;
+    }
 
-		tag.setTag(ENTITY_DATA_KEY, entityData);
-		tag.setString("entity", name);
-		stack.setTagCompound(tag);
-		return true;
-	}
+    public static void clearEntityData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            tag.removeTag(ENTITY_DATA_KEY);
+            tag.removeTag("entity");
+        }
+    }
 
-	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
-	{
-		ItemStack stack = player.getHeldItem(hand);
-		Block block = world.getBlockState(pos).getBlock();
+    public static NBTTagCompound getEntityData(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            return tag.getCompoundTag(ENTITY_DATA_KEY);
+        }
+        return null;
+    }
 
-		if(Loader.isModLoaded("betterplacement"))
-		{
-			if(CarryOnKeybinds.isKeyPressed(player))
-				return EnumActionResult.FAIL;
-		}
-		
-		if (hasEntityData(stack))
-		{
-			BlockPos finalPos = pos;
+    public static Entity getEntity(ItemStack stack, World world) {
+        if (world == null)
+            return null;
 
-			if (!block.isReplaceable(world, pos))
-			{
-				finalPos = pos.offset(facing);
-			}
+        String name = getEntityName(stack);
 
-			Entity entity = getEntity(stack, world);
-			if (entity != null)
-			{
-				if (!world.isRemote)
-				{
-					entity.setPositionAndRotation(finalPos.getX() + 0.5, finalPos.getY(), finalPos.getZ() + 0.5, 180 + player.rotationYawHead, 0.0f);
-					world.spawnEntity(entity);
-					if (entity instanceof EntityLiving)
-					{
-						((EntityLiving) entity).playLivingSound();
-					}
-					clearEntityData(stack);
-					player.setHeldItem(hand, ItemStack.EMPTY);
-					ItemEvents.sendPacket(player, 9, 0);
-				
-				}
-				player.getEntityData().removeTag("overrideKey");
-				return EnumActionResult.SUCCESS;
-			}
-		}
+        NBTTagCompound e = getEntityData(stack);
+        Entity entity = EntityList.createEntityByIDFromName(new ResourceLocation(name), world);
+        if (entity != null)
+            entity.readFromNBT(e);
 
-		return EnumActionResult.FAIL;
-	}
+        return entity;
+    }
 
-	@Override
-	public void onUpdate(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected)
-	{
-		if (hasEntityData(stack))
-		{
-			if(getEntity(stack, world) == null)
-				stack = ItemStack.EMPTY;
+    public static String getEntityName(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            return tag.getString("entity");
+        }
+        return null;
+    }
 
-			if (entity instanceof EntityLivingBase)
-			{
-				if(entity instanceof EntityPlayer && CarryOnConfig.settings.slownessInCreative ? false : ((EntityPlayer)entity).isCreative())
-					return;
+    public static String getCustomName(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            NBTTagCompound tag = stack.getTagCompound();
+            if (tag.hasKey("CustomName") && !tag.getString("CustomName").isEmpty()) {
+                return tag.toString();
+            } else {
+                return tag.toString();
+            }
+        }
+        return null;
+    }
 
-				((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 1, potionLevel(stack, world), false, false));
-			}
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        if (hasEntityData(stack)) {
+            return I18n.translateToLocal("entity." + EntityList.getTranslationName(new ResourceLocation(getEntityName(stack))) + ".name");
+        }
 
-		}
-		else
-		{
-			stack = ItemStack.EMPTY;
-		}
-	}
+        return "";
+    }
 
-	public static void clearEntityData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			tag.removeTag(ENTITY_DATA_KEY);
-			tag.removeTag("entity");
-		}
-	}
+    @Override
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        ItemStack stack = player.getHeldItem(hand);
+        Block block = world.getBlockState(pos).getBlock();
 
-	public static NBTTagCompound getEntityData(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			return tag.getCompoundTag(ENTITY_DATA_KEY);
-		}
-		return null;
-	}
+        if (Loader.isModLoaded("betterplacement")) {
+            if (CarryOnKeybinds.isKeyPressed(player))
+                return EnumActionResult.FAIL;
+        }
 
-	public static Entity getEntity(ItemStack stack, World world)
-	{
-		if (world == null)
-			return null;
+        if (hasEntityData(stack)) {
+            BlockPos finalPos = pos;
 
-		String name = getEntityName(stack);
+            if (!block.isReplaceable(world, pos)) {
+                finalPos = pos.offset(facing);
+            }
 
-		NBTTagCompound e = getEntityData(stack);
-		Entity entity = EntityList.createEntityByIDFromName(new ResourceLocation(name), world);
-		if (entity != null)
-			entity.readFromNBT(e);
+            Entity entity = getEntity(stack, world);
+            if (entity != null) {
+                if (!world.isRemote) {
+                    entity.setPositionAndRotation(finalPos.getX() + 0.5, finalPos.getY(), finalPos.getZ() + 0.5, 180 + player.rotationYawHead, 0.0f);
+                    world.spawnEntity(entity);
+                    if (entity instanceof EntityLiving) {
+                        ((EntityLiving) entity).playLivingSound();
+                    }
+                    clearEntityData(stack);
+                    player.setHeldItem(hand, ItemStack.EMPTY);
+                    ItemEvents.sendPacket(player, 9, 0);
 
-		return entity;
-	}
+                }
+                player.getEntityData().removeTag("overrideKey");
+                return EnumActionResult.SUCCESS;
+            }
+        }
 
-	public static String getEntityName(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			return tag.getString("entity");
-		}
-		return null;
-	}
+        return EnumActionResult.FAIL;
+    }
 
-	public static String getCustomName(ItemStack stack)
-	{
-		if (stack.hasTagCompound())
-		{
-			NBTTagCompound tag = stack.getTagCompound();
-			if (tag.hasKey("CustomName") && !tag.getString("CustomName").isEmpty()) {
-				return tag.toString();
-			} else {
-				return tag.toString();
-			}
-		}
-		return null;
-	}
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
+        if (hasEntityData(stack)) {
+            if (getEntity(stack, world) == null)
+                stack = ItemStack.EMPTY;
 
-	private int potionLevel(ItemStack stack, World world)
-	{
-		Entity e = getEntity(stack, world);
-		if(e == null)
-			return 1;
-		
-		int i = (int)(e.height * e.width);
-		if (i > 4)
-			i = 4;
+            if (entity instanceof EntityLivingBase) {
+                if (entity instanceof EntityPlayer && CarryOnConfig.settings.slownessInCreative ? false : ((EntityPlayer) entity).isCreative())
+                    return;
 
-		if (!CarryOnConfig.settings.heavyEntities)
-			i = 1;
+                ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 1, potionLevel(stack, world), false, false));
+            }
 
-		return (int) (i * CarryOnConfig.settings.entitySlownessMultiplier);
-	}
+        } else {
+            stack = ItemStack.EMPTY;
+        }
+    }
+
+    private int potionLevel(ItemStack stack, World world) {
+        Entity e = getEntity(stack, world);
+        if (e == null)
+            return 1;
+
+        int i = (int) (e.height * e.width);
+        if (i > 4)
+            i = 4;
+
+        if (!CarryOnConfig.settings.heavyEntities)
+            i = 1;
+
+        return (int) (i * CarryOnConfig.settings.entitySlownessMultiplier);
+    }
 }

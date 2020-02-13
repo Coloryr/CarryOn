@@ -21,54 +21,47 @@ import tschipp.carryon.common.item.ItemTile;
 import tschipp.carryon.compat.llibrary.LLibraryEvents;
 import tschipp.carryon.compat.obfuscate.ObfuscateEvents;
 
-public class RegistrationHandler
-{
-	public static Item itemTile;
-	public static Item itemEntity;
+public class RegistrationHandler {
+    public static Item itemTile;
+    public static Item itemEntity;
 
-	public static void regItems()
-	{
-		itemTile = new ItemTile();
-		itemEntity = new ItemEntity();
-	}
-	
-	public static void regItemRenders()
-	{
-		ModelLoader.setCustomModelResourceLocation(itemTile, 0, new ModelResourceLocation(CarryOn.MODID + ":" + "tile", "inventory"));
-		ModelLoader.setCustomModelResourceLocation(itemEntity, 0, new ModelResourceLocation(CarryOn.MODID + ":" + "tile", "inventory"));
-	}
-	
-	public static void regCommonEvents()
-	{
-		MinecraftForge.EVENT_BUS.register(new ItemEvents());
-		MinecraftForge.EVENT_BUS.register(new ItemEntityEvents());
-		MinecraftForge.EVENT_BUS.register(new PositionCommonEvents());
-	}
-	
-	public static void regClientEvents()
-	{
-		MinecraftForge.EVENT_BUS.register(new RenderEvents());
-		MinecraftForge.EVENT_BUS.register(new RenderEntityEvents());
-		MinecraftForge.EVENT_BUS.register(new PositionClientEvents());
-		
-		if(Loader.isModLoaded("obfuscate"))
-			MinecraftForge.EVENT_BUS.register(new ObfuscateEvents());
-		
-		if(Loader.isModLoaded("llibrary"))
-			MinecraftForge.EVENT_BUS.register(new LLibraryEvents());
+    public static void regItems() {
+        itemTile = new ItemTile();
+        itemEntity = new ItemEntity();
+    }
 
-	}
-	
-	public static void regOverrideList()
-	{
-		ModelOverridesHandler.initOverrides();
-		CustomPickupOverrideHandler.initPickupOverrides();
-		ListHandler.initLists();
-	}
-	
-	public static void regCaps()
-	{
-		CapabilityManager.INSTANCE.register(IPosition.class, new PositionStorage(), TEPosition::new);
-	}
+    public static void regItemRenders() {
+        ModelLoader.setCustomModelResourceLocation(itemTile, 0, new ModelResourceLocation(CarryOn.MODID + ":" + "tile", "inventory"));
+        ModelLoader.setCustomModelResourceLocation(itemEntity, 0, new ModelResourceLocation(CarryOn.MODID + ":" + "tile", "inventory"));
+    }
+
+    public static void regCommonEvents() {
+        MinecraftForge.EVENT_BUS.register(new ItemEvents());
+        MinecraftForge.EVENT_BUS.register(new ItemEntityEvents());
+        MinecraftForge.EVENT_BUS.register(new PositionCommonEvents());
+    }
+
+    public static void regClientEvents() {
+        MinecraftForge.EVENT_BUS.register(new RenderEvents());
+        MinecraftForge.EVENT_BUS.register(new RenderEntityEvents());
+        MinecraftForge.EVENT_BUS.register(new PositionClientEvents());
+
+        if (Loader.isModLoaded("obfuscate"))
+            MinecraftForge.EVENT_BUS.register(new ObfuscateEvents());
+
+        if (Loader.isModLoaded("llibrary"))
+            MinecraftForge.EVENT_BUS.register(new LLibraryEvents());
+
+    }
+
+    public static void regOverrideList() {
+        ModelOverridesHandler.initOverrides();
+        CustomPickupOverrideHandler.initPickupOverrides();
+        ListHandler.initLists();
+    }
+
+    public static void regCaps() {
+        CapabilityManager.INSTANCE.register(IPosition.class, new PositionStorage(), TEPosition::new);
+    }
 
 }
