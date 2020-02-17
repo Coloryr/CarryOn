@@ -1,5 +1,6 @@
 package tschipp.carryon.network.client;
 
+import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,17 +31,18 @@ public class CarrySlotPacketHandler implements IMessageHandler<CarrySlotPacket, 
                         if (message.slot >= 9) {
                             player.getEntityData().removeTag("carrySlot");
                             player.getEntityData().removeTag("overrideKey");
+                            if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
+                                RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
                         } else {
-
                             player.getEntityData().setInteger("carrySlot", message.slot);
                             if (message.carryOverride != 0)
                                 ScriptChecker.setCarryOnOverride(player, message.carryOverride);
+                            if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
+                                RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
                         }
                     }
                 }
-
             }
-
         });
 
         return null;

@@ -73,8 +73,6 @@ public class ItemEntityEvents {
         if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemEntity && ItemEntity.hasEntityData(stack)) {
             player.getEntityData().removeTag("carrySlot");
             event.setUseBlock(Result.DENY);
-            if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-                RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
             if (!player.world.isRemote) {
                 CarryOnOverride override = ScriptChecker.getOverride(player);
                 if (override != null) {
@@ -148,8 +146,6 @@ public class ItemEntityEvents {
                             player.setHeldItem(EnumHand.MAIN_HAND, stack);
                             event.setCanceled(true);
                             event.setCancellationResult(EnumActionResult.FAIL);
-                            if (RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null)
-                                RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
                         }
                     }
                 }

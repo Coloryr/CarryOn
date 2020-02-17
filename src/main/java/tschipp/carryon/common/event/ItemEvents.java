@@ -1,6 +1,5 @@
 package tschipp.carryon.common.event;
 
-import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -64,8 +63,6 @@ import java.util.Map.Entry;
 public class ItemEvents {
 
     public static Map<BlockPos, Integer> positions = new HashMap<BlockPos, Integer>();
-    private static boolean is_c = false;
-    private static int con = 0;
 
     public static void emptyTileEntity(TileEntity te) {
         if (te != null) {
@@ -128,14 +125,6 @@ public class ItemEvents {
         if (!stack.isEmpty() && stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack)) {
             player.getEntityData().removeTag("carrySlot");
             event.setUseBlock(Result.DENY);
-            if (is_c) {
-                con++;
-            }
-            if (con == 2 && RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null) {
-                RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(false);
-                con = 0;
-                is_c = false;
-            }
             if (!player.world.isRemote) {
                 CarryOnOverride override = ScriptChecker.getOverride(player);
                 if (override != null) {
@@ -380,11 +369,6 @@ public class ItemEvents {
                             String command = override.getCommandInit();
                             if (command != null)
                                 player.getServer().getCommandManager().executeCommand(player.getServer(), "/execute " + player.getGameProfile().getName() + " ~ ~ ~ " + command);
-                        }
-                        if (success && RenderPlayerHandler.getContext() != null && RenderPlayerHandler.getContext().currentJsonModel != null) {
-                            is_c = true;
-                            con = 0;
-                            RenderPlayerHandler.getContext().currentJsonModel.Setcarryon(true);
                         }
                     }
                 }
