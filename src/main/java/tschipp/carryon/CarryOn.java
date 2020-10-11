@@ -31,7 +31,7 @@ public class CarryOn {
     public static final String UPDATE_JSON = "https://gist.githubusercontent.com/Tschipp/dccadee7c90d7a34e6e76a35d9d6fa2e/raw/";
     public static final Logger LOGGER = LogManager.getFormatterLogger("CarryOn");
     public static final String DEPENDENCIES = "required-after:forge@[13.20.1.2386,);after:gamestages;";
-    public static final String CERTIFICATE_FINGERPRINT = "55e88f24d04398481ae6f1ce76f65fd776f14227";
+    public static final String CERTIFICATE_FINGERPRINT = "FD21553434F4905F2F73EA7838147AC4EA07BD88";
     @SidedProxy(clientSide = "tschipp.carryon.client.ClientProxy", serverSide = "tschipp.carryon.common.CommonProxy")
     public static CommonProxy proxy;
     // Instance

@@ -1,6 +1,5 @@
 package tschipp.carryon.common.scripting;
 
-import com.google.gson.*;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
